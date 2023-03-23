@@ -33,7 +33,7 @@ class Meter:
 			"SENSE:FUNC1 \"CURR:DC\"",
 			"SENSE:FUNC2 \"VOLT:DC\"",
 			"SENSE:VOLT:RANG:AUTO ON",
-			"SENSE:CURR:RANG:AUTO ON",
+			"SENSE:CURR:DC:RANG MAX",
 			"SENS:DET:BAND MIN",
 			"SENS:CURR:DC:FILT:STAT ON",
 			"SENS:VOLT:DC:FILT:STAT ON",
@@ -42,7 +42,7 @@ class Meter:
 			"TRIG:DEL 0",
 			"TRIG:COUN 1",
 			"SAMP:COUN 1",
-			"DISP OFF",
+			"DISP ON",
 			":INIT",
 		])
 
@@ -74,9 +74,20 @@ class Meter:
 			if status == 1:
 				raw_data = [ self.query(":FETC1?").replace("\r", ""), self.query(":FETC2?").replace("\r", "") ]
 				res = [float(i) for i in raw_data]
+				break
+			time.sleep(0.05)
+		return res
+
+	def measure_sync_and_trigger(self) -> List[ float ]:
+		res = []
+		while True:
+			status = int(self.query("*OPC?"))
+			if status == 1:
+				raw_data = [ self.query(":FETC1?").replace("\r", ""), self.query(":FETC2?").replace("\r", "") ]
+				res = [float(i) for i in raw_data]
 				self.write_config(":INIT")
 				break
-			time.sleep(0.1)
+			time.sleep(0.05)
 		return res
 
 	def filter_analog_on(self) -> None:
